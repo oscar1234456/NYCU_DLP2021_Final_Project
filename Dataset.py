@@ -8,19 +8,26 @@ from torch.utils.data import Dataset
 def getData(mode ='train'):
     if mode =='train':
         # given 1981/1/1~2009/12/31 for training
-        for files in os.listdir(r'./data/daily/'):
+        # TODO: think about another sampling way
+        # cut 32days in 5/1~11/8 each years
+        for files in sorted(os.listdir(r'./data/daily/')):
             fileYear = int(files[:4])
-            fileMonth = files[5:7].strip("-")
-            fileDay = files[7:].strip("-")
+            fileMonth = int(files[4:6])
+            fileDay = int(files[6:-4])
 
             lowerYear = 1981
             lowerMonth = 5
             upperYear = 2009
-            upperYear = 10
+            upperMonth = 11
+            endDayinLastMonth = 8
 
-            if lowerYear <= fileYear <= upperYear:
+            if lowerYear <= fileYear <= upperYear and lowerMonth <= fileMonth <= upperMonth:
                 # for training
-                dataset = rasterio.open(r'./data/daily/' + files)
+                # dataset = rasterio.open(r'./data/daily/' + files)
+                if fileMonth==upperMonth and fileDay>endDayinLastMonth:
+                    continue
+                print(f"load Datafile:{files}")
+
 
     else:
         # given 2010/1/1~2019/12/31 for testing
@@ -39,3 +46,6 @@ class PrecipitationDataset(Dataset):
             if lower <= year <= upper:
                 # for training
                 dataset = rasterio.open(r'./data/daily/' + files)
+
+if __name__ == "__main__":
+    getData(mode = "train")
