@@ -157,7 +157,7 @@
       <workItem from="1628497766856" duration="10449000" />
       <workItem from="1628563121418" duration="8190000" />
       <workItem from="1630771965610" duration="1864000" />
-      <workItem from="1630805958684" duration="23703000" />
+      <workItem from="1630805958684" duration="29419000" />
     </task>
     <servers />
   </component>
@@ -185,22 +185,31 @@
           <line>71</line>
           <option name="timeStamp" value="13" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/models.py</url>
+          <line>51</line>
+          <option name="timeStamp" value="31" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/models.py</url>
+          <line>50</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
-        <watch expression="input" language="Python" />
-        <watch expression="input.view(-1,1,32,32,32)" language="Python" />
+        <watch expression="latent" language="Python" />
         <watch expression="out" language="Python" />
-        <watch expression="linearMean" language="Python" />
-        <watch expression="linearLogVar" language="Python" />
+        <watch expression="result" language="Python" />
+        <watch expression="out.view(-1, 256, 128, 3, 3, 3)" language="Python" />
       </configuration>
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/finalProject$DataPreprocess.coverage" NAME="DataPreprocess Coverage Results" MODIFIED="1630832971611" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/finalProject$test.coverage" NAME="test Coverage Results" MODIFIED="1630824864876" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/finalProject$models.coverage" NAME="models Coverage Results" MODIFIED="1630845555794" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/finalProject$models.coverage" NAME="models Coverage Results" MODIFIED="1630847382827" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/finalProject$Dataset.coverage" NAME="Dataset Coverage Results" MODIFIED="1630842578179" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
