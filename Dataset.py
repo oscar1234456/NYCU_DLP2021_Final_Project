@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 
 def getData(mode ='train'):
-    if mode =='train':
+    if mode == 'train':
         # for training
         # given 1981/1/1~2009/12/31 for training
         # TODO: think about another sampling way
