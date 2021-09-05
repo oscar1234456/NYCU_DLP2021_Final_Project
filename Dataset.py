@@ -1,3 +1,5 @@
+import random
+
 import rasterio
 import numpy as np
 import os
@@ -5,6 +7,26 @@ import pandas as pd
 from rasterio.plot import show
 from torch.utils.data import Dataset, DataLoader
 import torch
+
+
+START_OF_TRAINING_YEAR = 1981
+END_OF_TRAINING_YEAR = 2010
+START_OF_TESTING_YEAR = 2011
+END_OF_TESTING_YEAR = 2020
+NUM_OF_BOUNDING_BOX = 16
+RAND_BOUNDING_BOX_RANGE = 4
+SAMPLES_PER_YEAR = 30
+SAMPLE_RANGE = 150
+SEQUENCE_LENGTH = 32
+
+
+def calculateTotalYears(mode):
+    if mode == 'train':
+        return END_OF_TRAINING_YEAR - START_OF_TRAINING_YEAR + 1
+    else:
+        return END_OF_TESTING_YEAR - START_OF_TESTING_YEAR + 1
+
+
 
 class Date:
     def __init__(self, year, month, day):
@@ -54,15 +76,22 @@ class DateRange:
 
 
 class TifData:
-    def __init__(self, mode='train'):
-        self.FILE_ROOT = r'./data/daily/'
-        self.startDateOfTrain = Date(1981, 5, 1)
-        self.endDateOfTrain = Date(2010, 11, 8)
+    class TifSequence:
+        def __init__(self, filenamePos):
+            self.startIndex = filenamePos
+
+    def __init__(self, root, mode='train'):
+        self.root = root
+        self.mode = mode
+        self.startDateOfTrain = Date(START_OF_TRAINING_YEAR, 5, 1)
+        self.endDateOfTrain = Date(END_OF_TRAINING_YEAR, 11, 8)
         self.trainingDateRange = DateRange(self.startDateOfTrain, self.endDateOfTrain)
+        # TODO: load test data
         # self.startDateOfTest = ?
         # self.endDateOfTest = ?
         # self.testingDateRange = DateRange(self.startDateOfTest, self.endDateOfTest)
-        self.filenameCombinedResult = self.loadData(mode)
+        self.loadedFilenames = self.loadData(mode)
+        self.sequences = self._sampleTifSequences()
 
     def loadData(self, mode='train'):
         if mode == 'train':
@@ -72,17 +101,36 @@ class TifData:
 
     def _loadTrainData(self):
         result = list()
-        tifGroup = list()
-        groupSize = 32
-        for tif in sorted(os.listdir(self.FILE_ROOT)):
+        for tif in self._getAllFilenames():
             fileDate = FileDate(tif)
             if self.trainingDateRange.isValidFileDate(fileDate):
-                print(f'load Datafile: {tif}')
-                tifGroup.append(tif)
-                if self._isGroupFilled(tifGroup, groupSize):
-                    result.append(tifGroup)
-                    tifGroup = list()
+                result.append(tif)
         return result
+
+    def _sampleTifSequences(self):
+        totalYears = calculateTotalYears(self.mode)
+        sequences = list()
+        for year in range(totalYears):
+            startPos = self._sampleStartPos(year)
+            sequences.extend(self._generateTifSequencesFromPos(startPos))
+        return sequences
+
+    def _sampleStartPos(self, year):
+        begin = year * SAMPLE_RANGE
+        startPosRange = SAMPLE_RANGE - SEQUENCE_LENGTH
+        startPos = random.sample(range(startPosRange), k=SAMPLES_PER_YEAR)
+        for i in range(len(startPos)):
+            startPos[i] += begin
+        return startPos
+
+    def _generateTifSequencesFromPos(self, startPos):
+        tifSequences = list()
+        for pos in startPos:
+            tifSequences.append(self.TifSequence(pos))
+        return tifSequences
+
+    def _getAllFilenames(self):
+        return sorted(os.listdir(self.root))
 
     def _isGroupFilled(self, group, size):
         return len(group) != 0 and len(group) % size == 0
@@ -91,51 +139,20 @@ class TifData:
         pass
 
 
-# def getData(mode ='train'):
-#     if mode =='train':
-#         # for training
-#         # given 1981/1/1~2009/12/31 for training
-#         # TODO: think about another sampling way
-#         # cut 32days in 5/1~11/8 each years
-#         filenameCombinedResult = list()
-#         teamList = list()
-#         index = 0
-#         for files in sorted(os.listdir(r'./data/daily/')):
-#
-#             fileYear = int(files[:4])
-#             fileMonth = int(files[4:6])
-#             fileDay = int(files[6:-4])
-#
-#             lowerYear = 1981
-#             lowerMonth = 5
-#             upperYear = 2009
-#             upperMonth = 11
-#             endDayinLastMonth = 8
-#
-#             if lowerYear <= fileYear <= upperYear and lowerMonth <= fileMonth <= upperMonth:
-#                 if fileMonth == upperMonth and fileDay > endDayinLastMonth:
-#                     continue
-#                 print(f"load Datafile:{files}")
-#                 teamList.append(files)
-#                 index += 1
-#                 if index != 0 and index % 32 == 0:
-#                     # 32: means the default length of a sequence
-#                     filenameCombinedResult.append(teamList)
-#                     teamList = list()
-#
-#     else:
-#         # given 2010/1/1~2019/12/31 for testing
-#         pass
-#     return filenameCombinedResult
-
-class PrecipitationDatasetLoader(Dataset):
+class PrecipitationDataset(Dataset):
     def __init__(self, mode="train", root="./data/daily/"):
-        self.filenameList = getData(mode)
-        print(f">>There are {len(self.filenameList)} sequences.")
+        self.mode = mode
+        self.numOfBoundingBoxes = NUM_OF_BOUNDING_BOX
+        self.randBoundingBoxesRange = RAND_BOUNDING_BOX_RANGE
+        self.totalYears = calculateTotalYears(mode)
+        self.samplesPerYear = SAMPLES_PER_YEAR
+        self.tifs = TifData(root, mode)
+        # print(f">>There are {len(self.tifs.loadedFilenames)} sequences.")
         self.root = root
 
     def __len__(self):
-        return len(self.filenameList)
+        return self.numOfBoundingBoxes * self.totalYears * self.samplesPerYear
+
     def __getitem__(self, index):
         dataSequenceFilenames = self.filenameList[index]
         # dataSequence: total 32days precipitation data filenames
@@ -149,7 +166,6 @@ class PrecipitationDatasetLoader(Dataset):
 
 
 if __name__ == "__main__":
-    # combineData = getData(mode = "train")
-    tifData = TifData()
-    combineData = tifData.filenameCombinedResult
+    tifData = TifData("./data/daily/")
+    combineData = tifData.loadedFilenames
     print(combineData)
