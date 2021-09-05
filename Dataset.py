@@ -60,7 +60,7 @@ class PrecipitationDatasetLoader(Dataset):
             data_array = dataset.read(1)
             # data_array: 40*60 (numpy array)
             result.append(data_array[:32,19:51]) # sample scope: (0,19),(0,50),(31,19),(31,50)
-        return torch.FloatTensor(result)  #output: 5*32*32*32
+        return torch.FloatTensor(result)  #output: 32*32*32
 
 
 if __name__ == "__main__":

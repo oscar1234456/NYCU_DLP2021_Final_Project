@@ -14,6 +14,7 @@ class Encoder(nn.Module):
 
     def forward(self, input):
         # input: N*32*32*32
+        out = self.convLayer(input)
         pass
 
 class Decoder(nn.Module):
