@@ -3,7 +3,8 @@ import numpy as np
 import os
 import pandas as pd
 from rasterio.plot import show
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+import torch
 
 def getData(mode ='train'):
     if mode =='train':
@@ -42,20 +43,30 @@ def getData(mode ='train'):
         pass
     return filenameCombinedResult
 
-class PrecipitationDataset(Dataset):
-    def __init__(self):
-        pass
+class PrecipitationDatasetLoader(Dataset):
+    def __init__(self, mode="train", root="./data/daily/"):
+        self.filenameList = getData(mode)
+        print(f">>There are {len(self.filenameList)} sequences.")
+        self.root = root
+
     def __len__(self):
-        pass
-    def __getitem__(self, item):
-        for files in os.listdir(r'./data/daily/'):
-            year = int(files[:3])
-            lower = 1981
-            upper = 2009
-            if lower <= year <= upper:
-                # for training
-                dataset = rasterio.open(r'./data/daily/' + files)
+        return len(self.filenameList)
+    def __getitem__(self, index):
+        dataSequenceFilenames = self.filenameList[index]
+        # dataSequence: total 32days precipitation data filenames
+        result = list()
+        for singleFilename in dataSequenceFilenames:
+            dataset = rasterio.open(self.root + singleFilename)
+            data_array = dataset.read(1)
+            # data_array: 40*60 (numpy array)
+            result.append(data_array[:32,19:51]) # sample scope: (0,19),(0,50),(31,19),(31,50)
+        return torch.FloatTensor(result)  #output: 5*32*32*32
+
 
 if __name__ == "__main__":
-    combineData = getData(mode = "train")
-    print(combineData)
+    # combineData = getData(mode = "train")
+    # print(combineData)
+    train_data = PrecipitationDatasetLoader(mode="train")
+    trainLoader = DataLoader(train_data, batch_size=5, shuffle=True)
+    test = next(iter(trainLoader))
+    print(test)
