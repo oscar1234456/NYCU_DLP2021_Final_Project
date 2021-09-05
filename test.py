@@ -5,14 +5,21 @@ import pandas as pd
 from matplotlib import pyplot
 from rasterio.plot import show
 
-dataset = rasterio.open("./data/chirps-v2.0.1981.08.tif")
-dataset.index(21.781631,-31.384303)
-pyplot.imshow(dataset.read(1), cmap='YlOrRd')
-pyplot.show()
-# show(dataset)
+dataset = rasterio.open("./data/daily/1981-8-15.tif")
+# dataset.index(21.781631,-31.384303)
+#row, col = dataset.index(20.054185,72.966381) #there is some trouble if we don't use whole world map
 
-dataArray = dataset.read(1)
-# pyplot.hist2d(dataArray)
+# pyplot way:
+# pyplot.imshow(dataset.read(1), cmap='YlOrRd')
 # pyplot.show()
-# dataArray = dataArray[1627,4035]
-# dataArray *= (255.0/dataArray.max())
+#
+# rasterio plot way:
+show(dataset)
+
+#read dataset(and specified "Band")
+dataArray = dataset.read(1)
+
+#have some trouble(reason same as above)
+#dataArray = dataArray[row,col]
+
+print(dataArray)
