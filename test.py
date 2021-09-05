@@ -7,7 +7,7 @@ from matplotlib import pyplot
 from rasterio.plot import show
 
 ##
-dataset = rasterio.open("./data/daily/1981-8-15.tif")
+dataset = rasterio.open("./data/daily/20100815.tif")
 # dataset.index(21.781631,-31.384303)
 #row, col = dataset.index(20.054185,72.966381) #there is some trouble if we don't use whole world map
 
@@ -20,6 +20,8 @@ show(dataset)
 
 #read dataset(and specified "Band")
 dataArray = dataset.read(1)
+dataArray = dataArray[4: 36]
+dataArray = dataArray[:, 17:49]
 
 #have some trouble(reason same as above)
 #dataArray = dataArray[row,col]

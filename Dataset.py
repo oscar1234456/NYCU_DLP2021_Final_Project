@@ -18,6 +18,7 @@ RAND_BOUNDING_BOX_RANGE = 4
 SAMPLES_PER_YEAR = 30
 SAMPLE_RANGE = 150
 SEQUENCE_LENGTH = 32
+BOUNDING_BOX_START_POS = (0, 17)
 
 
 def calculateTotalYears(mode):
@@ -48,15 +49,15 @@ class FileDate:
         self.END_OF_YEAR = 4
         self.END_OF_MONTH = 6
         self.END_OF_DAY = -4
-        self.date = Date(self._getYear(filename), self._getMonth(filename), self._getDay(filename))
+        self.date = Date(self._extractYear(filename), self._extractMonth(filename), self._extractDay(filename))
 
-    def _getYear(self, filename):
+    def _extractYear(self, filename):
         return filename[: self.END_OF_YEAR]
 
-    def _getMonth(self, filename):
+    def _extractMonth(self, filename):
         return filename[self.END_OF_YEAR: self.END_OF_MONTH]
 
-    def _getDay(self, filename):
+    def _extractDay(self, filename):
         return filename[self.END_OF_MONTH: self.END_OF_DAY]
 
 
@@ -77,8 +78,13 @@ class DateRange:
 
 class TifData:
     class TifSequence:
-        def __init__(self, filenamePos):
+        def __init__(self, filenamePos, offset):
             self.startIndex = filenamePos
+            self.offset = offset
+
+        def getPos(self):
+            return BOUNDING_BOX_START_POS[0] + self.offset[0],\
+                   BOUNDING_BOX_START_POS[1] + self.offset[1]
 
     def __init__(self, root, mode='train'):
         self.root = root
@@ -90,14 +96,30 @@ class TifData:
         # self.startDateOfTest = ?
         # self.endDateOfTest = ?
         # self.testingDateRange = DateRange(self.startDateOfTest, self.endDateOfTest)
-        self.loadedFilenames = self.loadData(mode)
+        self.loadedFilenames = self.loadFilename(mode)
         self.sequences = self._sampleTifSequences()
 
-    def loadData(self, mode='train'):
+    def loadSequence(self, sequenceIndex: int):
+        sequence = self.sequences[sequenceIndex]
+        startPos = sequence.getPos()
+        tifGroup = list()
+        for i in range(SEQUENCE_LENGTH):
+            tif = self._loadTif(sequence, i)
+            tifGroup.append(self._cropTif(tif, startPos))
+        return np.array(tifGroup)
+
+    def loadFilename(self, mode='train'):
         if mode == 'train':
             return self._loadTrainData()
         else:
             return self._loadTestData()
+
+    def _loadTif(self, sequence, index):
+        filename = self.loadedFilenames[sequence.startIndex + index]
+        return rasterio.open(self.root + filename).read(1)
+
+    def _cropTif(self, tif, pos):
+        return tif[pos[0] : pos[0] + SEQUENCE_LENGTH, pos[1] : pos[1] + SEQUENCE_LENGTH]
 
     def _loadTrainData(self):
         result = list()
@@ -107,7 +129,7 @@ class TifData:
                 result.append(tif)
         return result
 
-    def _sampleTifSequences(self):
+    def _sampleTifSequences(self) -> list:
         totalYears = calculateTotalYears(self.mode)
         sequences = list()
         for year in range(totalYears):
@@ -126,7 +148,10 @@ class TifData:
     def _generateTifSequencesFromPos(self, startPos):
         tifSequences = list()
         for pos in startPos:
-            tifSequences.append(self.TifSequence(pos))
+            for row in range(RAND_BOUNDING_BOX_RANGE):
+                for col in range(RAND_BOUNDING_BOX_RANGE):
+                    offset = (row, col)
+                    tifSequences.append(self.TifSequence(pos, offset))
         return tifSequences
 
     def _getAllFilenames(self):
@@ -151,21 +176,30 @@ class PrecipitationDataset(Dataset):
         self.root = root
 
     def __len__(self):
-        return self.numOfBoundingBoxes * self.totalYears * self.samplesPerYear
+        return len(self.tifs.sequences)
 
     def __getitem__(self, index):
-        dataSequenceFilenames = self.filenameList[index]
-        # dataSequence: total 32days precipitation data filenames
-        result = list()
-        for singleFilename in dataSequenceFilenames:
-            dataset = rasterio.open(self.root + singleFilename)
-            data_array = dataset.read(1)
-            # data_array: 40*60 (numpy array)
-            result.append(data_array[:32,19:51]) # sample scope: (0,19),(0,50),(31,19),(31,50)
-        return torch.FloatTensor(result)  #output: 32*32*32
+        tifGroup = self.tifs.loadSequence(index)
+        return torch.from_numpy(tifGroup)
+        # dataSequenceFilenames = self.filenameList[index]
+        # # dataSequence: total 32days precipitation data filenames
+        # result = list()
+        # for singleFilename in dataSequenceFilenames:
+        #     dataset = rasterio.open(self.root + singleFilename)
+        #     data_array = dataset.read(1)
+        #     # data_array: 40*60 (numpy array)
+        #     result.append(data_array[:32,19:51]) # sample scope: (0,19),(0,50),(31,19),(31,50)
+        # return torch.FloatTensor(result)  #output: 32*32*32
 
 
 if __name__ == "__main__":
-    tifData = TifData("./data/daily/")
-    combineData = tifData.loadedFilenames
-    print(combineData)
+    # tifData = TifData("./data/daily/")
+    # array = tifData.loadSequence(100)
+    # combineData = tifData.loadedFilenames
+    # print(combineData)
+    dataset = PrecipitationDataset()
+    d0 = dataset[0]
+    d1 = dataset[10]
+    d2 = dataset[483]
+    d3 = dataset[4583]
+    print('aa')
