@@ -8,7 +8,9 @@ class Encoder(nn.Module):
 
         self.convLayer = nn.Sequential(
             nn.Conv3d(in_channels=1, out_channels=128, kernel_size=(3, 3, 3), stride=(2,2,2)),
+            nn.BatchNorm3d(128),
             nn.Conv3d(in_channels=128, out_channels=128, kernel_size=(3, 3, 3), stride=(2,2,2)),
+            nn.BatchNorm3d(128),
         )
         self.linearLayer = nn.Sequential(
             nn.Linear(in_features=128*7*7*7, out_features=500),
@@ -33,7 +35,9 @@ class Decoder(nn.Module):
         self.linearLayer = nn.Linear(in_features=self.latentSize, out_features=256*7*7*7)
         self.convTranspose = nn.Sequential(
             nn.ConvTranspose3d(in_channels=256, out_channels=128, kernel_size=(3, 3, 3), stride=(2, 2, 2)),
+            nn.BatchNorm3d(128),
             nn.ConvTranspose3d(in_channels=128, out_channels=128, kernel_size=(3, 3, 3), stride=(2, 2, 2)),
+            nn.BatchNorm3d(128),
             nn.ConvTranspose3d(in_channels=128, out_channels=1, kernel_size=(2, 2, 2))
         )
 
