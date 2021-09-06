@@ -16,23 +16,24 @@ class Trainner():
         self.klWeight = klWeight
         self.root = modelSaveRoot
 
+        # DataLoader #
+        self.trainDataLoader = trainDataLoader
+        # Models #
+        self._decoder = Decoder(self.latentSize).to(self.device)
+        self._encoder = Encoder(self.latentSize).to(self.device)
+        # self._decoder = Decoder(self.latentSize).to(self.device)
+
         # Optimizer #
         self._encoder_optimizer = torch.optim.Adam(self._encoder.parameters(), lr=self.lr,
                                                    betas=(self.beta1, self.beta2))
         self._decoder_optimizer = torch.optim.Adam(self._decoder.parameters(), lr=self.lr,
                                                    betas=(self.beta1, self.beta2))
 
-        # DataLoader #
-        self.trainDataLoader = trainDataLoader
-
-        # Models #
-        self._encoder = Encoder(self.latentSize).to(self.device)
-        self._decoder = Decoder(self.latentSize).to(self.device)
 
     def train(self):
         minLoss = 9999
         print(">>>Training Process Start<<<")
-        for epoch in self.maxEpoch:
+        for epoch in range(self.maxEpoch):
             print('Epoch [{}/{}]'.format(epoch, self.maxEpoch - 1))
             print('-' * 12)
             nowLoss = 0
@@ -47,7 +48,7 @@ class Trainner():
 
                 nowLoss += loss.item() * inputs.size(0)
 
-                if batch % 4 == 0:
+                if batch % 10 == 0:
                     print(f'>>Batch [{batch}] ReconstructLoss:{reconstructionLoss.item()} KLLoss:{klLoss.item()} Loss:{loss.item()}')
 
             size = len(self.trainDataLoader.dataset)
@@ -61,10 +62,12 @@ class Trainner():
                 self.modelWeightSaver()
 
         print(">>>Training Process End<<<")
+        print(f"The minimal loss: {minLoss}")
 
     def modelWeightSaver(self):
-        torch.save(self._encoder.state_dict(), self.root + '/encoder.pth')
-        torch.save(self._decoder.state_dict(), self.root + '/decoder.pth')
+        torch.save(self._encoder.state_dict(), self.root + 'encoder.pth')
+        torch.save(self._decoder.state_dict(), self.root + 'decoder.pth')
+        print("Model Save!")
 
     def _vaeForward(self, inputs):
         mean, variance = self._encoder(inputs)
