@@ -45,6 +45,7 @@ class Trainner():
                     inputs, decoderOutputs, encoderLogVar, encoderMean, self.klWeight)
                 loss.backward()
                 self._updateModelParameter()
+                # TODO: Need to add the KL annealing. Survey the method what paper used to annealing weight first
 
                 nowLoss += loss.item() * inputs.size(0)
 
