@@ -7,11 +7,11 @@ class Encoder(nn.Module):
         self.latentSize = latentSize
 
         self.convLayer = nn.Sequential(
-            nn.Conv3d(in_channels=1, out_channels=128, kernel_size=(3, 3, 3)),
-            nn.Conv3d(in_channels=128, out_channels=128, kernel_size=(3, 3, 3)),
+            nn.Conv3d(in_channels=1, out_channels=128, kernel_size=(3, 3, 3), stride=(2,2,2)),
+            nn.Conv3d(in_channels=128, out_channels=128, kernel_size=(3, 3, 3), stride=(2,2,2)),
         )
         self.linearLayer = nn.Sequential(
-            nn.Linear(in_features=128*28*28*28, out_features=500),
+            nn.Linear(in_features=128*7*7*7, out_features=500),
             nn.ReLU()
         )
         self.linear_mean = nn.Linear(500, self.latentSize)
@@ -20,7 +20,7 @@ class Encoder(nn.Module):
     def forward(self, inputs):
         # inputs: N*32*32*32
         out = self.convLayer(inputs.view(-1, 1, 32, 32, 32))  # out: N*128*28*28*28
-        out = self.linearLayer(out.view(-1, 128*28*28*28))  # out: N*500
+        out = self.linearLayer(out.view(-1, 128*7*7*7))  # out: N*500
         linearMean = self.linear_mean(out)  # linearMean: N*30
         linearLogVar = self.linear_logVar(out)  # linearLogVar: N*30
         return linearMean, linearLogVar
@@ -41,16 +41,16 @@ class Decoder(nn.Module):
         # latent: N*30
         out = self.linearLayer(latent)  # out:N*131072
         result = self.convTranspose(out.view(-1, 256, 7, 7, 7))  # result: N*1*32*32*32
-        return result
+        return result.view(-1, 32, 32, 32)
 
 
 if __name__ == "__main__":
-    testTensor = torch.randn(5,32,32,32)
-    encoder = Encoder()
-    mean, log_var = encoder(testTensor)
-    print(mean)
-    print(log_var)
-    # testLatent = torch.randn(5,30)
-    # decoder = Decoder()
+    # testTensor = torch.randn(5,32,32,32)
+    # encoder = Encoder()
+    # mean, log_var = encoder(testTensor)
+    # print(mean)
+    # print(log_var)
+    testLatent = torch.randn(5,30)
+    decoder = Decoder()
     # result
-    # Final = decoder(testLatent)
+    Final = decoder(testLatent)
