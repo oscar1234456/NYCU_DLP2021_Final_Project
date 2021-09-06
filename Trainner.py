@@ -1,5 +1,5 @@
 import torch
-from Models import Encoder, Decoder
+from VAE import VAE
 
 
 class Trainner():
@@ -18,16 +18,19 @@ class Trainner():
 
         # DataLoader #
         self.trainDataLoader = trainDataLoader
-        # Models #
-        self._decoder = Decoder(self.latentSize).to(self.device)
-        self._encoder = Encoder(self.latentSize).to(self.device)
-        # self._decoder = Decoder(self.latentSize).to(self.device)
 
-        # Optimizer #
-        self._encoder_optimizer = torch.optim.Adam(self._encoder.parameters(), lr=self.lr,
-                                                   betas=(self.beta1, self.beta2))
-        self._decoder_optimizer = torch.optim.Adam(self._decoder.parameters(), lr=self.lr,
-                                                   betas=(self.beta1, self.beta2))
+        # Model #
+        self.vaeModel = VAE(latentSize, device, klWeight, lr, beta1, beta2)
+        # # Models #
+        # self._decoder = Decoder(self.latentSize).to(self.device)
+        # self._encoder = Encoder(self.latentSize).to(self.device)
+        # # self._decoder = Decoder(self.latentSize).to(self.device)
+        #
+        # # Optimizer #
+        # self._encoder_optimizer = torch.optim.Adam(self._encoder.parameters(), lr=self.lr,
+        #                                            betas=(self.beta1, self.beta2))
+        # self._decoder_optimizer = torch.optim.Adam(self._decoder.parameters(), lr=self.lr,
+        #                                            betas=(self.beta1, self.beta2))
 
 
     def train(self):
@@ -39,12 +42,12 @@ class Trainner():
             nowLoss = 0
             for batch, inputs in enumerate(self.trainDataLoader):
                 inputs = inputs.to(self.device)  # N*32*32*32
-                self._resetModelAndOptimizer()
-                decoderOutputs, encoderMean, encoderLogVar = self._vaeForward(inputs)
+                self.vaeModel.reset()
+                decoderOutputs, encoderMean, encoderLogVar = self.vaeModel.forward(inputs)
                 loss, reconstructionLoss, klLoss = self._calculateLoss(
                     inputs, decoderOutputs, encoderLogVar, encoderMean, self.klWeight)
                 loss.backward()
-                self._updateModelParameter()
+                self.vaeModel.update()
                 # TODO: Need to add the KL annealing. Survey the method what paper used to annealing weight first
 
                 nowLoss += loss.item() * inputs.size(0)
@@ -66,29 +69,27 @@ class Trainner():
         print(f"The minimal loss: {minLoss}")
 
     def modelWeightSaver(self):
-        torch.save(self._encoder.state_dict(), self.root + 'encoder.pth')
-        torch.save(self._decoder.state_dict(), self.root + 'decoder.pth')
-        print("Model Save!")
+        self.vaeModel.save(self.root)
 
-    def _vaeForward(self, inputs):
-        mean, variance = self._encoder(inputs)
-        latentCode = self._reparameterTrick(mean, variance)
-        return self._decoder(latentCode), mean, variance
-
-    def _updateModelParameter(self):
-        self._encoder_optimizer.step()
-        self._decoder_optimizer.step()
-
-    def _resetModelAndOptimizer(self):
-        self._encoder.train()
-        self._decoder.train()
-        self._encoder_optimizer.zero_grad()
-        self._decoder_optimizer.zero_grad()
-
-    def _reparameterTrick(self, mean, logVar):
-        std = torch.exp(logVar * 0.5)
-        esp = torch.randn_like(std)
-        return mean + std * esp
+    # def _vaeForward(self, inputs):
+    #     mean, variance = self._encoder(inputs)
+    #     latentCode = self._reparameterTrick(mean, variance)
+    #     return self._decoder(latentCode), mean, variance
+    #
+    # def _updateModelParameter(self):
+    #     self._encoder_optimizer.step()
+    #     self._decoder_optimizer.step()
+    #
+    # def _resetModelAndOptimizer(self):
+    #     self._encoder.train()
+    #     self._decoder.train()
+    #     self._encoder_optimizer.zero_grad()
+    #     self._decoder_optimizer.zero_grad()
+    #
+    # def _reparameterTrick(self, mean, logVar):
+    #     std = torch.exp(logVar * 0.5)
+    #     esp = torch.randn_like(std)
+    #     return mean + std * esp
 
     def _KLDLoss(self, logVar, mean):
         return -0.5*(torch.sum(1+logVar-mean.pow(2)-logVar.exp()))
