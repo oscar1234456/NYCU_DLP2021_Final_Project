@@ -93,9 +93,9 @@ class TifData:
         self.endDateOfTrain = Date(END_OF_TRAINING_YEAR, 11, 8)
         self.trainingDateRange = DateRange(self.startDateOfTrain, self.endDateOfTrain)
         # TODO: load test data
-        # self.startDateOfTest = ?
-        # self.endDateOfTest = ?
-        # self.testingDateRange = DateRange(self.startDateOfTest, self.endDateOfTest)
+        self.startDateOfTest = Date(START_OF_TESTING_YEAR, 5, 1)
+        self.endDateOfTest = Date(END_OF_TESTING_YEAR, 11, 8)
+        self.testingDateRange = DateRange(self.startDateOfTest, self.endDateOfTest)
         self.loadedFilenames = self.loadFilename(mode)
         self.sequences = self._sampleTifSequences()
 
@@ -108,11 +108,15 @@ class TifData:
             tifGroup.append(self._cropTif(tif, startPos))
         return np.array(tifGroup)
 
+    # TODO: refactor, need test
     def loadFilename(self, mode='train'):
-        if mode == 'train':
-            return self._loadTrainData()
-        else:
-            return self._loadTestData()
+        result = list()
+        dateRange = self.trainingDateRange if mode == 'train' else self.testingDateRange
+        for tif in self._getAllFilenames():
+            fileDate = FileDate(tif)
+            if dateRange.isValidFileDate(fileDate):
+                result.append(tif)
+        return result
 
     def _loadTif(self, sequence, index):
         filename = self.loadedFilenames[sequence.startIndex + index]
@@ -120,14 +124,6 @@ class TifData:
 
     def _cropTif(self, tif, pos):
         return tif[pos[0] : pos[0] + SEQUENCE_LENGTH, pos[1] : pos[1] + SEQUENCE_LENGTH]
-
-    def _loadTrainData(self):
-        result = list()
-        for tif in self._getAllFilenames():
-            fileDate = FileDate(tif)
-            if self.trainingDateRange.isValidFileDate(fileDate):
-                result.append(tif)
-        return result
 
     def _sampleTifSequences(self) -> list:
         totalYears = calculateTotalYears(self.mode)
@@ -154,14 +150,11 @@ class TifData:
                     tifSequences.append(self.TifSequence(pos, offset))
         return tifSequences
 
-    def _getAllFilenames(self):
-        return sorted(os.listdir(self.root))
-
     def _isGroupFilled(self, group, size):
         return len(group) != 0 and len(group) % size == 0
 
-    def _loadTestData(self):
-        pass
+    def _getAllFilenames(self):
+        return sorted(os.listdir(self.root))
 
 
 class PrecipitationDataset(Dataset):
@@ -187,13 +180,12 @@ class PrecipitationDataset(Dataset):
 
 
 if __name__ == "__main__":
-    # tifData = TifData("./data/daily/")
-    # array = tifData.loadSequence(100)
-    # combineData = tifData.loadedFilenames
-    # print(combineData)
-    dataset = PrecipitationDataset()
-    d0 = dataset[0]
-    d1 = dataset[10]
-    d2 = dataset[483]
-    d3 = dataset[4583]
-    print('aa')
+    tifData = TifData("./data/daily/", mode='test')
+    combineData = tifData.loadedFilenames
+    print(combineData)
+    # dataset = PrecipitationDataset()
+    # d0 = dataset[0]
+    # d1 = dataset[10]
+    # d2 = dataset[483]
+    # d3 = dataset[4583]
+    # print('aa')
