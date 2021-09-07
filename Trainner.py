@@ -21,16 +21,6 @@ class Trainner():
 
         # Model #
         self.vaeModel = VAE(latentSize, device, klWeight, lr, beta1, beta2)
-        # # Models #
-        # self._decoder = Decoder(self.latentSize).to(self.device)
-        # self._encoder = Encoder(self.latentSize).to(self.device)
-        # # self._decoder = Decoder(self.latentSize).to(self.device)
-        #
-        # # Optimizer #
-        # self._encoder_optimizer = torch.optim.Adam(self._encoder.parameters(), lr=self.lr,
-        #                                            betas=(self.beta1, self.beta2))
-        # self._decoder_optimizer = torch.optim.Adam(self._decoder.parameters(), lr=self.lr,
-        #                                            betas=(self.beta1, self.beta2))
 
 
     def train(self):
@@ -70,26 +60,6 @@ class Trainner():
 
     def modelWeightSaver(self):
         self.vaeModel.save(self.root)
-
-    # def _vaeForward(self, inputs):
-    #     mean, variance = self._encoder(inputs)
-    #     latentCode = self._reparameterTrick(mean, variance)
-    #     return self._decoder(latentCode), mean, variance
-    #
-    # def _updateModelParameter(self):
-    #     self._encoder_optimizer.step()
-    #     self._decoder_optimizer.step()
-    #
-    # def _resetModelAndOptimizer(self):
-    #     self._encoder.train()
-    #     self._decoder.train()
-    #     self._encoder_optimizer.zero_grad()
-    #     self._decoder_optimizer.zero_grad()
-    #
-    # def _reparameterTrick(self, mean, logVar):
-    #     std = torch.exp(logVar * 0.5)
-    #     esp = torch.randn_like(std)
-    #     return mean + std * esp
 
     def _KLDLoss(self, logVar, mean):
         return -0.5*(torch.sum(1+logVar-mean.pow(2)-logVar.exp()))
