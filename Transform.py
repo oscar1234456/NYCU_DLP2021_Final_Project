@@ -4,4 +4,4 @@ class ShiftNormalize(object):
         self.midVal = self.maxVal / 2
 
     def __call__(self, sample):
-        return (sample / self.midVal) - 1
+        return sample / self.midVal

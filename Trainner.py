@@ -54,7 +54,7 @@ class Trainner():
             print()
 
             # TODO: discuss about when to stop the training
-            if epoch_loss < minLoss:
+            if epoch > 10 and epoch_loss < minLoss:
                 minLoss = epoch_loss
                 self.modelWeightSaver()
 
