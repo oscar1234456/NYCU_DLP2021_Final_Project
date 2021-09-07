@@ -3,7 +3,7 @@ import rasterio
 import numpy as np
 import os
 import pandas as pd
-# from matplotlib import pyplot
+import matplotlib.pyplot as plt
 from rasterio.plot import show
 
 ##
@@ -59,5 +59,17 @@ print("End of Comparing")
 print(f"Max: {maxPrecipitation}")
 print(f"Min: {minPrecipitation}")
 
+## QQ Plot platting way
+x1 = np.random.normal(1,2,1000)
+x2 = np.random.normal(1,2,1000)
+
+x1.sort()
+x2.sort()
+
+plt.scatter(x1,x2)
+plt.plot([min(x1),max(x1)],[min(x1),max(x1)],color="red")
+plt.xlabel("1st dataset's quantiles")
+plt.ylabel("2nd dataset's quantiles")
+plt.show()
 
 
