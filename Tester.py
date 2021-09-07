@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 from Dataset import TifData
 from VAE import VAE
@@ -12,31 +13,38 @@ class Tester:
         self.model = VAE(latentSize, device)
         self.model.load(weightPath)
         self.tifs = TifData('./data/daily/', 'test')
-        self.quantiles = 500
+        self.quantiles = 150
 
     def qqPlot(self):
-        randTifs = self._randTif(1000)
-        tifMeans = self._calculatePrecipitationMean(randTifs)
-        tifMeans = np.sort(tifMeans)
-        lowPrecipitation, highPrecipitation = self._pickPercentileFromArr(tifMeans, 10)
+        means = self._getRandTifGroupMean(1500)
+        means = np.sort(means)
+        _, highPrecipitation = self._pickPercentileFromArr(means, 10)
+        originQuantiles = self._pickQuantile(means)
+        highPrecipitationQuantile = self._pickQuantile(highPrecipitation)
+        self._showQQPlot(originQuantiles, highPrecipitationQuantile)
 
 
+    def _showQQPlot(self, x, y):
+        plt.scatter(x, y)
+        plt.plot([min(x), max(x)], [min(x), max(x)], color='red')
+        plt.xlabel('quantile for real data')
+        plt.ylabel('quantile for synthetic data')
+        plt.show()
 
-    def _randTif(self, numOfTif):
-        size = len(self.tifs.sequences)
-        sequenceIndexes = random.sample(range(size), k=numOfTif)
-        randTifs = None
-        for index in sequenceIndexes:
-            if randTifs is None:
-                randTifs = self.tifs.loadSequence(index)
-            else:
-                randTifs = np.concatenate((randTifs, self.tifs.loadSequence(index)))
-        return randTifs
+    def _pickQuantile(self, npArray: np.ndarray):
+        stepSize = 1. / self.quantiles
+        quantiles = list()
+        for i in range(1, self.quantiles + 1):
+            quantiles.append(np.quantile(npArray, stepSize * i))
+        return np.array(quantiles)
 
-    def _calculatePrecipitationMean(self, tifs):
+    def _getRandTifGroupMean(self, numOfTif):
+        size = len(self.tifs.loadedFilenames) - 32
+        fileIndex = random.sample(range(size), k=numOfTif)
         means = list()
-        for tif in tifs:
-            means.append(np.mean(tif))
+        for index in fileIndex:
+            group = self.tifs.loadSingleTif(index)
+            means.append(np.mean(group))
         return np.array(means)
 
     def _pickPercentileFromArr(self, npArray, percent):
@@ -46,8 +54,9 @@ class Tester:
 
 if __name__ == "__main__":
     tester = Tester('./modelWeight/', 'cuda')
-    randTifs = tester._randTif(1000)
-    means = tester._calculatePrecipitationMean(randTifs)
-    means = np.sort(means)
-    low, high = tester._pickPercentileFromArr(means, 10)
-    print(randTifs)
+    tester.qqPlot()
+    # means = tester._getRandTifGroupMean(1500)
+    # means = np.sort(means)
+    # low, high = tester._pickPercentileFromArr(means, 10)
+    # quantiles = tester._pickQuantile(means)
+    # print(means)

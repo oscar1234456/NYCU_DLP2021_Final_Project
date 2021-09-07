@@ -107,14 +107,12 @@ class TifData:
             tifGroup.append(self._cropTif(tif, startPos))
         return np.array(tifGroup)
 
-    def loadSingleTifGroup(self, fileIndex: int):
+    def loadSingleTif(self, fileIndex: int):
         offset = (0, 0)
-        tifGroup = list()
-        for i in range(SEQUENCE_LENGTH):
-            sequence = self.TifSequence(fileIndex, offset)
-            tif = self._loadTif(sequence, i)
-            tifGroup.append(self._cropTif(tif, sequence.getPos()))
-        return np.array(tifGroup)
+        sequence = self.TifSequence(fileIndex, offset)
+        tif = self._loadTif(sequence, 0)
+        tif = self._cropTif(tif, sequence.getPos())
+        return tif
 
     def loadFilename(self, mode='train'):
         result = list()
@@ -196,5 +194,5 @@ if __name__ == "__main__":
     # d2 = dataset[483]
     # d3 = dataset[4583]
     tifData = TifData('./data/daily/', mode='test')
-    group = tifData.loadSingleTifGroup(60)
+    group = tifData.loadSingleTif(60)
     print('aa')
