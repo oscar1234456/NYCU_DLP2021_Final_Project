@@ -3,7 +3,7 @@ import rasterio
 import numpy as np
 import os
 import pandas as pd
-from matplotlib import pyplot
+# from matplotlib import pyplot
 from rasterio.plot import show
 
 ##
@@ -40,3 +40,24 @@ for files in os.listdir(r'./data/daily/'):
         table['Date'].loc[i] = files[:-4]
 
         table['Rainfall(mm)'].loc[i] = int(data_array[32, 19])
+
+## Find maximum
+maxPrecipitation = 0
+minPrecipitation = 10000
+for files in os.listdir(r'./data/daily/'):
+    print(f">>Running... Comparing:{files}")
+    dataset = rasterio.open(r'./data/daily/'+files)
+    tif = dataset.read(1)
+    scope = tif[:32, 17:49]
+    tempMax = np.max(scope)
+    tempMin = np.min(scope)
+    if tempMax > maxPrecipitation:
+        maxPrecipitation = tempMax
+    if tempMin < minPrecipitation:
+        minPrecipitation = tempMin
+print("End of Comparing")
+print(f"Max: {maxPrecipitation}")
+print(f"Min: {minPrecipitation}")
+
+
+

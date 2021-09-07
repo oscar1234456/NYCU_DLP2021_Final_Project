@@ -28,10 +28,15 @@ class VAE:
         self._encoderOptimizer.step()
         self._decoderOptimizer.step()
 
-    def save(self, root):
-        torch.save(self._encoder.state_dict(), root + 'encoder.pth')
-        torch.save(self._decoder.state_dict(), root + 'decoder.pth')
-        print("Model Save!")
+    def save(self, root, final=False):
+        if final:
+            torch.save(self._encoder.state_dict(), root + 'final_encoder.pth')
+            torch.save(self._decoder.state_dict(), root + 'final_decoder.pth')
+            print("Final Model Save!")
+        else:
+            torch.save(self._encoder.state_dict(), root + 'encoder.pth')
+            torch.save(self._decoder.state_dict(), root + 'decoder.pth')
+            print("Model Save!")
 
     def _reparameterTrick(self, mean, logVar):
         std = torch.exp(logVar * 0.5)
