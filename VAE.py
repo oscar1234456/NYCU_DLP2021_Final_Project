@@ -2,9 +2,8 @@ import torch
 from Models import Encoder, Decoder
 
 class VAE:
-    def __init__(self, latentSize, device, initialKL, lr, beta1, beta2):
+    def __init__(self, latentSize, device, lr, beta1, beta2):
         self.latentSize = latentSize
-        self.klWeight = initialKL
         self._encoder = Encoder(latentSize).to(device)
         self._decoder = Decoder(latentSize).to(device)
 

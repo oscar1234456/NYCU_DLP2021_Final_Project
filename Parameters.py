@@ -1,5 +1,5 @@
 latentSize = 30
-lr = 0.0001  # Default:0.001
+lr = 0.00001  # Default:0.001
 beta1 = 0.9
 beta2 = 0.999
 maxEpoch = 100  # Default:100

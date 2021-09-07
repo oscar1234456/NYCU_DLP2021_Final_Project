@@ -21,7 +21,7 @@ class Trainner():
         self.trainDataLoader = trainDataLoader
 
         # Model #
-        self.vaeModel = VAE(latentSize, device, klWeight, lr, beta1, beta2)
+        self.vaeModel = VAE(latentSize, device, lr, beta1, beta2)
 
 
     def train(self):
@@ -32,22 +32,16 @@ class Trainner():
             print('-' * 12)
             nowLoss = 0
 
-            # For test use, bad & old code (Warmup process):
-            # if self.warmup >= (epoch + 1):
-            #     klWeight = 0
-            # else:
-            #     print("KL weight Append!")
-            #     klWeight = self.klWeight
+            klWeight = self._setupKlWeight(epoch)
 
             for batch, inputs in enumerate(self.trainDataLoader):
                 inputs = inputs.to(self.device)  # N*32*32*32
                 self.vaeModel.reset()
                 decoderOutputs, encoderMean, encoderLogVar = self.vaeModel.forward(inputs)
                 loss, reconstructionLoss, klLoss = self._calculateLoss(
-                    inputs, decoderOutputs, encoderLogVar, encoderMean, self.klWeight)
+                    inputs, decoderOutputs, encoderLogVar, encoderMean, klWeight)
                 loss.backward()
                 self.vaeModel.update()
-                # TODO: Need to add the KL annealing. Survey the method what paper used to annealing weight first
 
                 nowLoss += loss.item() * inputs.size(0)
 
@@ -70,6 +64,10 @@ class Trainner():
 
     def modelWeightSaver(self, final=False):
         self.vaeModel.save(self.root, final)
+
+    def _setupKlWeight(self, epoch):
+        # TODO: Can use more complicated one
+        return 1 if epoch > 10 else 0
 
     def _KLDLoss(self, logVar, mean):
         return -0.5*(torch.sum(1+logVar-mean.pow(2)-logVar.exp()))
