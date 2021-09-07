@@ -165,7 +165,7 @@ class TifData:
 
 
 class PrecipitationDataset(Dataset):
-    def __init__(self, mode="train", root="./data/daily/"):
+    def __init__(self, mode="train", root="./data/daily/", trans=None):
         self.mode = mode
         self.numOfBoundingBoxes = NUM_OF_BOUNDING_BOX
         self.randBoundingBoxesRange = RAND_BOUNDING_BOX_RANGE
@@ -174,12 +174,15 @@ class PrecipitationDataset(Dataset):
         self.tifs = TifData(root, mode)
         # print(f">>There are {len(self.tifs.loadedFilenames)} sequences.")
         self.root = root
+        self.transform = trans
 
     def __len__(self):
         return len(self.tifs.sequences)
 
     def __getitem__(self, index):
         tifGroup = self.tifs.loadSequence(index)
+        if self.transform is not None:
+            tifGroup = self.transform(tifGroup)
         return torch.from_numpy(tifGroup)
 
 

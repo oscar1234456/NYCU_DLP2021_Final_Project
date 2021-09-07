@@ -6,3 +6,5 @@ maxEpoch = 100  # Default:100
 batchSize = 32  # Default:32
 klWeight = 1
 modelSaveRoot = "./modelWeight/"
+
+maxPrecipitation = 460.
