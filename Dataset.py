@@ -92,7 +92,6 @@ class TifData:
         self.startDateOfTrain = Date(START_OF_TRAINING_YEAR, 5, 1)
         self.endDateOfTrain = Date(END_OF_TRAINING_YEAR, 11, 8)
         self.trainingDateRange = DateRange(self.startDateOfTrain, self.endDateOfTrain)
-        # TODO: load test data
         self.startDateOfTest = Date(START_OF_TESTING_YEAR, 5, 1)
         self.endDateOfTest = Date(END_OF_TESTING_YEAR, 11, 8)
         self.testingDateRange = DateRange(self.startDateOfTest, self.endDateOfTest)
@@ -108,7 +107,6 @@ class TifData:
             tifGroup.append(self._cropTif(tif, startPos))
         return np.array(tifGroup)
 
-    # TODO: refactor, need test
     def loadFilename(self, mode='train'):
         result = list()
         dateRange = self.trainingDateRange if mode == 'train' else self.testingDateRange
@@ -165,9 +163,9 @@ class PrecipitationDataset(Dataset):
         self.totalYears = calculateTotalYears(mode)
         self.samplesPerYear = SAMPLES_PER_YEAR
         self.tifs = TifData(root, mode)
-        # print(f">>There are {len(self.tifs.loadedFilenames)} sequences.")
         self.root = root
         self.transform = trans
+        print(f">>There are {len(self.tifs.loadedFilenames)} tif files.")
 
     def __len__(self):
         return len(self.tifs.sequences)
@@ -180,12 +178,12 @@ class PrecipitationDataset(Dataset):
 
 
 if __name__ == "__main__":
-    tifData = TifData("./data/daily/", mode='test')
-    combineData = tifData.loadedFilenames
-    print(combineData)
-    # dataset = PrecipitationDataset()
-    # d0 = dataset[0]
-    # d1 = dataset[10]
-    # d2 = dataset[483]
-    # d3 = dataset[4583]
-    # print('aa')
+    # tifData = TifData("./data/daily/", mode='test')
+    # combineData = tifData.loadedFilenames
+    # print(combineData)
+    dataset = PrecipitationDataset(mode='test')
+    d0 = dataset[0]
+    d1 = dataset[10]
+    d2 = dataset[483]
+    d3 = dataset[4583]
+    print('aa')
