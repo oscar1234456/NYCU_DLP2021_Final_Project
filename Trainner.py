@@ -15,6 +15,7 @@ class Trainner():
         self.latentSize = latentSize
         self.klWeight = klWeight
         self.root = modelSaveRoot
+        self.warmup = 10  # For KLWeight test
 
         # DataLoader #
         self.trainDataLoader = trainDataLoader
@@ -40,6 +41,14 @@ class Trainner():
             print('Epoch [{}/{}]'.format(epoch, self.maxEpoch - 1))
             print('-' * 12)
             nowLoss = 0
+
+            # For test use, bad & old code (Warmup process):
+            # if self.warmup >= (epoch + 1):
+            #     klWeight = 0
+            # else:
+            #     print("KL weight Append!")
+            #     klWeight = self.klWeight
+
             for batch, inputs in enumerate(self.trainDataLoader):
                 inputs = inputs.to(self.device)  # N*32*32*32
                 self.vaeModel.reset()
@@ -67,9 +76,10 @@ class Trainner():
 
         print(">>>Training Process End<<<")
         print(f"The minimal loss: {minLoss}")
+        self.modelWeightSaver(final=True)
 
-    def modelWeightSaver(self):
-        self.vaeModel.save(self.root)
+    def modelWeightSaver(self, final=False):
+        self.vaeModel.save(self.root, final)
 
     # def _vaeForward(self, inputs):
     #     mean, variance = self._encoder(inputs)
