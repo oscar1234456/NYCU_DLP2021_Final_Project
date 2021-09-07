@@ -2,7 +2,7 @@ import torch
 from Models import Encoder, Decoder
 
 class VAE:
-    def __init__(self, latentSize, device, lr, beta1, beta2):
+    def __init__(self, latentSize, device, lr=0.0001, beta1=0.9, beta2=0.99):
         self.latentSize = latentSize
         self._encoder = Encoder(latentSize).to(device)
         self._decoder = Decoder(latentSize).to(device)
@@ -36,6 +36,10 @@ class VAE:
             torch.save(self._encoder.state_dict(), root + 'encoder.pth')
             torch.save(self._decoder.state_dict(), root + 'decoder.pth')
             print("Model Save!")
+
+    def load(self, path):
+        self._encoder = torch.load(path + 'encoder.pth')
+        self._decoder = torch.load(path + 'decoder.pth')
 
     def _reparameterTrick(self, mean, logVar):
         std = torch.exp(logVar * 0.5)

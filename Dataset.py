@@ -107,6 +107,15 @@ class TifData:
             tifGroup.append(self._cropTif(tif, startPos))
         return np.array(tifGroup)
 
+    def loadSingleTifGroup(self, fileIndex: int):
+        offset = (0, 0)
+        tifGroup = list()
+        for i in range(SEQUENCE_LENGTH):
+            sequence = self.TifSequence(fileIndex, offset)
+            tif = self._loadTif(sequence, i)
+            tifGroup.append(self._cropTif(tif, sequence.getPos()))
+        return np.array(tifGroup)
+
     def loadFilename(self, mode='train'):
         result = list()
         dateRange = self.trainingDateRange if mode == 'train' else self.testingDateRange
@@ -181,9 +190,11 @@ if __name__ == "__main__":
     # tifData = TifData("./data/daily/", mode='test')
     # combineData = tifData.loadedFilenames
     # print(combineData)
-    dataset = PrecipitationDataset(mode='test')
-    d0 = dataset[0]
-    d1 = dataset[10]
-    d2 = dataset[483]
-    d3 = dataset[4583]
+    # dataset = PrecipitationDataset(mode='test')
+    # d0 = dataset[0]
+    # d1 = dataset[10]
+    # d2 = dataset[483]
+    # d3 = dataset[4583]
+    tifData = TifData('./data/daily/', mode='test')
+    group = tifData.loadSingleTifGroup(60)
     print('aa')
