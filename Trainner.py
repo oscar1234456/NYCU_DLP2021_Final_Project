@@ -67,7 +67,8 @@ class Trainner():
 
     def _setupKlWeight(self, epoch):
         # TODO: Can use more complicated one
-        return 1 if epoch > 10 else 0
+        return 1 if epoch > 5 else 0
+        # return 1
 
     def _KLDLoss(self, logVar, mean):
         return -0.5*(torch.sum(1+logVar-mean.pow(2)-logVar.exp()))

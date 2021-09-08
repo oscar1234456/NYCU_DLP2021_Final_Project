@@ -43,15 +43,15 @@ class Decoder(nn.Module):
             nn.ConvTranspose3d(in_channels=128, out_channels=1, kernel_size=(2, 2, 2)),
             # nn.ReLU(True),
         )
-        # self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
+        self.relu = nn.ReLU()
+        # self.tanh = nn.Tanh()
 
     def forward(self, latent):
         # latent: N*30
         out = self.linearLayer(latent)  # out:N*131072
         result = self.convTranspose(out.view(-1, 256, 7, 7, 7))  # result: N*1*32*32*32
-        # return self.relu(result.view(-1, 32, 32, 32))
-        return self.tanh(result.view(-1, 32, 32, 32))
+        return self.relu(result.view(-1, 32, 32, 32))
+        # return self.tanh(result.view(-1, 32, 32, 32))
 
 
 if __name__ == "__main__":

@@ -32,7 +32,8 @@ class Tester:
     '''
     def getSynthesisWeather(self, sampleDistribution="Normal", block="Rare+"):
         decoderOutput = self.model.useDecoder(sampleDistribution,  block)
-        denormalOutput = self.shiftNormalize.deNormalize(decoderOutput, shift=0).cpu().detach().numpy()
+        # denormalOutput = self.shiftNormalize.deNormalize(decoderOutput, shift=0).cpu().detach().numpy()
+        denormalOutput = decoderOutput.cpu().detach().numpy()
         plt.imshow(denormalOutput[0][1], cmap='YlGnBu')
         plt.show()
 
@@ -66,11 +67,11 @@ class Tester:
 
 if __name__ == "__main__":
     tester = Tester('./modelWeight/lastTest/', 'cuda')
-    # tester.qqPlot()
+    tester.qqPlot()
     # means = tester._getRandTifGroupMean(1500)
     # means = np.sort(means)
     # low, high = tester._pickPercentileFromArr(means, 10)
     # quantiles = tester._pickQuantile(means)
     # print(means)
 
-    tester.getSynthesisWeather(block="Rare-")
+    # tester.getSynthesisWeather(block="Rare-")

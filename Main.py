@@ -13,7 +13,8 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using {} device".format(device))
 
 ##DataLoader
-trainData = PrecipitationDataset(mode="train", root="./data/daily/", trans=ShiftNormalize(Parameters.maxPrecipitation))
+# trainData = PrecipitationDataset(mode="train", root="./data/daily/", trans=ShiftNormalize(Parameters.maxPrecipitation))
+trainData = PrecipitationDataset(mode='train', root='./data/daily/')
 # trainData = PrecipitationDataset(mode='train', root='./data/daily/', trans=transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]))
 trainLoader = DataLoader(trainData, Parameters.batchSize, shuffle=True, num_workers=4, pin_memory=True)
 # trainLoader = DataLoader(trainData, Parameters.batchSize, shuffle=True)
