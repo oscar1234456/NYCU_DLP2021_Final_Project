@@ -5,6 +5,7 @@ import Parameters
 from Models import Encoder, Decoder
 from Sampler import Sampler
 from Transform import ShiftNormalize
+import matplotlib.pyplot as plt
 
 class VAE:
     def __init__(self, latentSize, device, lr=0.0001, beta1=0.9, beta2=0.99):
@@ -48,22 +49,24 @@ class VAE:
         self._encoder.load_state_dict(torch.load(path + 'final_encoder.pth'))
         self._decoder.load_state_dict(torch.load(path + 'final_decoder.pth'))
         print("Model Load Complete!")
+        print(f"Encoder:{self._encoder}")
+        print(f"Decoder:{self._decoder}")
 
     def _reparameterTrick(self, mean, logVar):
         std = torch.exp(logVar * 0.5)
         esp = torch.randn_like(std)
         return mean + std * esp
 
-    def useDecoder(self, path):
-        self.load(path)
-        latentCode = self._generateLatentCode(sampleDistribution="Normal", block="Rare-")
+    def useDecoder(self, sampleDistribution, block):
+        # self.load(path)
+        latentCode = self._generateLatentCode(sampleDistribution, block)
         # latentCode = torch.Tensor(np.random.normal(0, 1, 30))
         latentCode = latentCode.to(self.device)
         decoderOutput = self._decoder(latentCode) # decoderOutput: 32*32*32
         return decoderOutput
 
 
-    def _generateLatentCode(self, sampleDistribution="Normal", block="Rare+"):
+    def _generateLatentCode(self, sampleDistribution, block):
         sampler = Sampler(sampleAmount=1, sampleSize=self.latentSize,
                           sampleDistribution=sampleDistribution,
                           block=block)
@@ -73,12 +76,14 @@ class VAE:
 
 
 if __name__ == "__main__":
-    latentSize = 30
-    device = "cuda"
-    model = VAE(latentSize, device)
-    output = model.useDecoder("./modelWeight/")
-    normalization = ShiftNormalize(Parameters.maxPrecipitation)
-    denormalOutput = normalization.deNormalize(output).cpu().detach().numpy()
+    # latentSize = 30
+    # device = "cuda"
+    # model = VAE(latentSize, device)
+    # output = model.useDecoder("./modelWeight/", sampleDistribution="Normal",  block="Rare+")
+    # normalization = ShiftNormalize(Parameters.maxPrecipitation)
+    # denormalOutput = normalization.deNormalize(output).cpu().detach().numpy()
+    # plt.imshow(denormalOutput[0][1], cmap='YlGnBu')
+    # plt.show()
     print("")
 
 

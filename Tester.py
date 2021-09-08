@@ -7,6 +7,8 @@ from Dataset import TifData
 from VAE import VAE
 from Parameters import *
 
+from Transform import ShiftNormalize
+
 
 class Tester:
     def __init__(self, weightPath, device):
@@ -14,6 +16,7 @@ class Tester:
         self.model.load(weightPath)
         self.tifs = TifData('./data/daily/', 'test')
         self.quantiles = 150
+        self.shiftNormalize = ShiftNormalize(maxPrecipitation)
 
     def qqPlot(self):
         means = self._getRandTifGroupMean(1500)
@@ -23,6 +26,15 @@ class Tester:
         highPrecipitationQuantile = self._pickQuantile(highPrecipitation)
         self._showQQPlot(originQuantiles, highPrecipitationQuantile)
 
+    '''
+    getSynthesisWeather: Get colormap (specified latent code sample distribution and block range)
+    P.S. Only access one day for test currently
+    '''
+    def getSynthesisWeather(self, sampleDistribution="Normal", block="Rare+"):
+        decoderOutput = self.model.useDecoder(sampleDistribution,  block)
+        denormalOutput = self.shiftNormalize.deNormalize(decoderOutput, shift=0).cpu().detach().numpy()
+        plt.imshow(denormalOutput[0][1], cmap='YlGnBu')
+        plt.show()
 
     def _showQQPlot(self, x, y):
         plt.scatter(x, y)
@@ -53,10 +65,12 @@ class Tester:
 
 
 if __name__ == "__main__":
-    tester = Tester('./modelWeight/', 'cuda')
-    tester.qqPlot()
+    tester = Tester('./modelWeight/lastTest/', 'cuda')
+    # tester.qqPlot()
     # means = tester._getRandTifGroupMean(1500)
     # means = np.sort(means)
     # low, high = tester._pickPercentileFromArr(means, 10)
     # quantiles = tester._pickQuantile(means)
     # print(means)
+
+    tester.getSynthesisWeather(block="Rare-")

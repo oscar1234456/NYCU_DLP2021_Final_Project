@@ -6,5 +6,5 @@ class ShiftNormalize(object):
     def __call__(self, sample):
         return (sample / self.midVal) - 1
 
-    def deNormalize(self, input):
-        return (input + 1) * self.midVal
+    def deNormalize(self, inputs, shift=0):
+        return ((inputs + 1) if shift == 0 else inputs) * self.midVal

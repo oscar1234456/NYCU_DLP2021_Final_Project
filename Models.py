@@ -36,10 +36,12 @@ class Decoder(nn.Module):
         self.convTranspose = nn.Sequential(
             nn.ConvTranspose3d(in_channels=256, out_channels=128, kernel_size=(3, 3, 3), stride=(2, 2, 2)),
             nn.BatchNorm3d(128),
+            # nn.ReLU(),
             nn.ConvTranspose3d(in_channels=128, out_channels=128, kernel_size=(3, 3, 3), stride=(2, 2, 2)),
             nn.BatchNorm3d(128),
             nn.ReLU(True),
-            nn.ConvTranspose3d(in_channels=128, out_channels=1, kernel_size=(2, 2, 2))
+            nn.ConvTranspose3d(in_channels=128, out_channels=1, kernel_size=(2, 2, 2)),
+            # nn.ReLU(True),
         )
         # self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
