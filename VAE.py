@@ -1,9 +1,16 @@
+import numpy as np
 import torch
+
+import Parameters
 from Models import Encoder, Decoder
+from Sampler import Sampler
+from Transform import ShiftNormalize
 
 class VAE:
     def __init__(self, latentSize, device, lr=0.0001, beta1=0.9, beta2=0.99):
         self.latentSize = latentSize
+        self.device = device
+
         self._encoder = Encoder(latentSize).to(device)
         self._decoder = Decoder(latentSize).to(device)
 
@@ -38,10 +45,42 @@ class VAE:
             print("Model Save!")
 
     def load(self, path):
-        self._encoder = torch.load(path + 'encoder.pth')
-        self._decoder = torch.load(path + 'decoder.pth')
+        self._encoder.load_state_dict(torch.load(path + 'final_encoder.pth'))
+        self._decoder.load_state_dict(torch.load(path + 'final_decoder.pth'))
+        print("Model Load Complete!")
 
     def _reparameterTrick(self, mean, logVar):
         std = torch.exp(logVar * 0.5)
         esp = torch.randn_like(std)
         return mean + std * esp
+
+    def useDecoder(self, path):
+        self.load(path)
+        latentCode = self._generateLatentCode(sampleDistribution="Normal", block="Rare-")
+        # latentCode = torch.Tensor(np.random.normal(0, 1, 30))
+        latentCode = latentCode.to(self.device)
+        decoderOutput = self._decoder(latentCode) # decoderOutput: 32*32*32
+        return decoderOutput
+
+
+    def _generateLatentCode(self, sampleDistribution="Normal", block="Rare+"):
+        sampler = Sampler(sampleAmount=1, sampleSize=self.latentSize,
+                          sampleDistribution=sampleDistribution,
+                          block=block)
+        latentCode = sampler.sample()
+        return latentCode
+
+
+
+if __name__ == "__main__":
+    latentSize = 30
+    device = "cuda"
+    model = VAE(latentSize, device)
+    output = model.useDecoder("./modelWeight/")
+    normalization = ShiftNormalize(Parameters.maxPrecipitation)
+    denormalOutput = normalization.deNormalize(output).cpu().detach().numpy()
+    print("")
+
+
+
+

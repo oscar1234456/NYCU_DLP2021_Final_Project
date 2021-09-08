@@ -38,6 +38,7 @@ class Decoder(nn.Module):
             nn.BatchNorm3d(128),
             nn.ConvTranspose3d(in_channels=128, out_channels=128, kernel_size=(3, 3, 3), stride=(2, 2, 2)),
             nn.BatchNorm3d(128),
+            nn.ReLU(True),
             nn.ConvTranspose3d(in_channels=128, out_channels=1, kernel_size=(2, 2, 2))
         )
         # self.relu = nn.ReLU()

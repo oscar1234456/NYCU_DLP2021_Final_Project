@@ -5,3 +5,6 @@ class ShiftNormalize(object):
 
     def __call__(self, sample):
         return (sample / self.midVal) - 1
+
+    def deNormalize(self, input):
+        return (input + 1) * self.midVal
